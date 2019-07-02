@@ -9,3 +9,6 @@ sh build_framework.sh xcodeproj目录 Debug/Release
 
 ### dumpcarsh.sh 解析.crash文件 利用系统自带的symbolicatecrash
 sh dumpcarsh.sh dsym文件   crash文件 (解析后生成一个.txt文件在.crash同目录)
+```
+sh dumpcrash.sh /Users/liusong/Downloads/xxxx.dSYM /Users/liusong/Desktop/xxxxx2019-7-1,6-18PM.crash
+```
