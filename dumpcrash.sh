@@ -77,6 +77,8 @@ dir=`dirname "$2"`
 name=`basename "$2"`
 newName=${dir}/${name}".txt"
 
+#可通过以下命令查找symbolicatecrash所处位置
+#find /Applications/Xcode.app -name symbolicatecrash -type f
 cd /Applications/Xcode.app/Contents/SharedFrameworks/DVTFoundation.framework/Versions/A/Resources
 if [[ $uuid == $firstUUID ]]; then
 	./symbolicatecrash "$2" "$1" > $newName 0> /dev/null
