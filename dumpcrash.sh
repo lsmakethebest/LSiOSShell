@@ -1,11 +1,10 @@
 #!/bin/bash
-# echo $1
-# echo $2
+
+
+export DEVELOPER_DIR="/Applications/XCode.app/Contents/Developer"
+
 firstArch=$(dwarfdump --uuid "$1" | grep UUID | head -n 1)
 secondArch=$(dwarfdump --uuid "$1" | grep UUID | tail -n 1)
-# /Applications/Xcode.app/Contents/SharedFrameworks/DVTFoundation.framework/Versions/A/Resources
-# 判断是否有值
-
 
 echo "------------DSYM文件中信息--------------"
 dsymProcess=${firstArch#*)}
@@ -79,6 +78,7 @@ newName=${dir}/${name}".txt"
 
 #可通过以下命令查找symbolicatecrash所处位置
 #find /Applications/Xcode.app -name symbolicatecrash -type f
+
 cd /Applications/Xcode.app/Contents/SharedFrameworks/DVTFoundation.framework/Versions/A/Resources
 if [[ $uuid == $firstUUID ]]; then
 	./symbolicatecrash "$2" "$1" > $newName 0> /dev/null
