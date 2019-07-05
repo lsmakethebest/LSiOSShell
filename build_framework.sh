@@ -2,19 +2,24 @@
 
 
 cd $1
-result=`xcodebuild -showBuildSettings | grep WRAPPER_EXTENSION | head -1 | grep framework`
-isFramework=0;
-if [ "$result" != "" ];then
-    isFramework=1
-fi
 
 echo "dir:"$1
-echo "isFramework:"$isFramework
 
 #要build的target名
 target_Name=`ls | grep .xcodeproj | head -1`
 target_Name=${target_Name%.xcodeproj}
+if [[ "$3" != "" ]];then
+    target_Name=$3;
+fi
+
 echo "target_Name:"$target_Name
+
+result=`xcodebuild -showBuildSettings -target $target_Name | grep WRAPPER_EXTENSION | head -1 | grep framework 2>/dev/null`
+isFramework=0;
+if [ "$result" != "" ];then
+    isFramework=1
+fi
+echo "isFramework:"$isFramework
 
 #编译模式  Release、Debug
 build_model="Release"
