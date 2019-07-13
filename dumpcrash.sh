@@ -81,7 +81,7 @@ echo "----------------------------------------------------------------"
 
 function getInfoFromDSYM(){
 	firstArch=$(dwarfdump --uuid "$1" | grep UUID | head -n 1)
-	secondArch=$(dwarfdump --uuid "$1" | grep UUID | tail -n 1)
+	secondArch=$(dwarfdump --uuid "$1" | grep UUID | tail -n +2 | head -n 1)
 
 	dsymProcess=${firstArch#*)}
 	dsymProcess=`basename $dsymProcess`
