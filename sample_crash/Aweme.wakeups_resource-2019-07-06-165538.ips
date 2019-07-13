@@ -1,0 +1,110 @@
+{"app_name":"Aweme","timestamp":"2019-07-06 16:55:38.85 +0800","app_version":"6.9.1","slice_uuid":"480561FA-60AC-3303-AA42-1C47269A63CD","adam_id":1142110895,"build_version":"69100","bundleID":"com.ss.iphone.ugc.Aweme","share_with_app_devs":false,"is_first_party":false,"bug_type":"142","os_version":"iPhone OS 13.0 (17A5508m)","incident_id":"BEB6DEED-2272-4EAA-B973-4F7974CD7A0F","name":"Aweme"}
+Date/Time:        2019-07-06 16:51:12 +0800
+End time:         2019-07-06 16:55:38 +0800
+OS Version:       iPhone OS 13.0 (Build 17A5508m)
+Architecture:     arm64
+Report Version:   29
+Incident Identifier: BEB6DEED-2272-4EAA-B973-4F7974CD7A0F
+
+Data Source:      Microstackshots
+Shared Cache:     0x270f4000 222CB6FD-E599-3CB5-A548-9A255EB7601A
+
+Command:          Aweme
+Path:             /private/var/containers/Bundle/Application/14CE6C5C-1953-488D-82A9-E676B20E6988/Aweme.app/Aweme
+Identifier:       com.ss.iphone.ugc.Aweme
+Version:          6.9.1 (69100)
+Beta Identifier:  F65968BA-59DD-4305-8550-9050CC816DEA
+PID:              1213
+
+Event:            wakeups
+Action taken:     none
+Wakeups:          45002 wakeups over the last 267 seconds (169 wakeups per second average), exceeding limit of 150 wakeups per second over 300 seconds
+Wakeups limit:    45000
+Limit duration:   300s
+Wakeups caused:   45002
+Wakeups duration: 267s
+Duration:         266.58s
+Duration Sampled: 9.02s
+Steps:            3
+
+Hardware model:   iPhone9,1
+Active cpus:      2
+
+
+Heaviest stack for the target process:
+  2  ??? (libsystem_pthread.dylib + 45412) [0x1bc713164]
+  2  ??? (<0983ACBE-2601-3F7E-9ADC-F30273C874C1> + 4584832) [0x10a62b580]
+  2  ??? (<0983ACBE-2601-3F7E-9ADC-F30273C874C1> + 4585068) [0x10a62b66c]
+  1  ??? (<0983ACBE-2601-3F7E-9ADC-F30273C874C1> + 4560432) [0x10a625630]
+
+
+Powerstats for:   Aweme [1213]
+Bundle ID:        com.ss.iphone.ugc.Aweme
+Adam ID:          1142110895
+Is first party:   No
+App version:      6.9.1
+Build version:    69100
+Is Beta:          No
+Share with Devs:  No
+UUID:             480561FA-60AC-3303-AA42-1C47269A63CD
+Path:             /private/var/containers/Bundle/Application/14CE6C5C-1953-488D-82A9-E676B20E6988/Aweme.app/Aweme
+Architecture:     arm64
+Footprint:        397.77 MB
+Pageins:          4 pages
+Start time:       2019-07-06 16:55:29 +0800
+End time:         2019-07-06 16:55:38 +0800
+Num samples:      3 (100%)
+CPU Time:         1.159s
+Primary state:    2 samples Frontmost App, Non-Suppressed, User mode, Effective Thread QoS Default, Requested Thread QoS Default, Override Thread QoS Unspecified
+User Activity:    0 samples Idle, 0 samples Active, 3 samples Unknown
+Power Source:     0 samples on Battery, 0 samples on AC, 3 samples Unknown
+  2  ??? (libsystem_pthread.dylib + 45412) [0x1bc713164]
+    2  ??? (<0983ACBE-2601-3F7E-9ADC-F30273C874C1> + 4584832) [0x10a62b580]
+      2  ??? (<0983ACBE-2601-3F7E-9ADC-F30273C874C1> + 4585068) [0x10a62b66c]
+        1  ??? (<0983ACBE-2601-3F7E-9ADC-F30273C874C1> + 4560432) [0x10a625630]
+        1  ??? (<0983ACBE-2601-3F7E-9ADC-F30273C874C1> + 4463308) [0x10a60dacc]
+          1  ??? (<0983ACBE-2601-3F7E-9ADC-F30273C874C1> + 4462308) [0x10a60d6e4]
+            1  ??? (<0983ACBE-2601-3F7E-9ADC-F30273C874C1> + 4496260) [0x10a615b84]
+  1  ??? (libsystem_pthread.dylib + 49100) [0x1bc713fcc]
+    1  ??? (libdispatch.dylib + 71624) [0x1bc6a47c8]
+      1  ??? (libdispatch.dylib + 69624) [0x1bc6a3ff8]
+        1  ??? (libdispatch.dylib + 18228) [0x1bc697734]
+          1  ??? (libdispatch.dylib + 377324) [0x1bc6ef1ec]
+            1  ??? (libdispatch.dylib + 374392) [0x1bc6ee678]
+              1  ??? (Aweme + 3428796) [0x1051c11bc]
+                1  ??? (Aweme + 41437200) [0x107600810]
+                  1  ??? (Aweme + 41407984) [0x1075f95f0]
+                    1  ??? (CoreGraphics + 1916112) [0x1bd9cccd0]
+                      1  ??? (CoreGraphics + 1998236) [0x1bd9e0d9c]
+                        1  ??? (CoreGraphics + 8400) [0x1bd7fb0d0]
+                          1  ??? (CoreGraphics + 1887700) [0x1bd9c5dd4]
+                            1  ??? (CoreGraphics + 1897308) [0x1bd9c835c]
+                              1  ??? (CoreGraphics + 3017596) [0x1bdad9b7c]
+                                1  ??? (CoreGraphics + 996472) [0x1bd8ec478]
+                                  1  ??? (CoreGraphics + 2467292) [0x1bda535dc]
+                                    1  ??? (CoreGraphics + 996472) [0x1bd8ec478]
+                                      1  ??? (CoreGraphics + 3084064) [0x1bdae9f20]
+                                        1  ??? (ImageIO + 516528) [0x1bdde51b0]
+                                          1  ??? (ImageIO + 466796) [0x1bddd8f6c]
+                                            1  ??? (ImageIO + 481340) [0x1bdddc83c]
+                                              1  ??? (ImageIO + 482948) [0x1bdddce84]
+                                                1  ??? (ImageIO + 483804) [0x1bdddd1dc]
+                                                  1  ??? (ImageIO + 2108416) [0x1bdf69c00]
+                                                    1  ??? (ImageIO + 1843900) [0x1bdf292bc]
+                                                      1  ??? (ImageIO + 486708) [0x1bddddd34]
+                                                        1  ??? (ImageIO + 1666288) [0x1bdefdcf0]
+                                                          1  ??? (libsystem_c.dylib + 234660) [0x1bc53c4a4]
+                                                            1  ??? (libsystem_c.dylib + 263508) [0x1bc543554]
+                                                              1  ??? (libsystem_c.dylib + 405484) [0x1bc565fec]
+                                                                1  ??? (libsystem_c.dylib + 272932) [0x1bc545a24]
+                                                                  1  ??? (libsystem_c.dylib + 244740) [0x1bc53ec04]
+                                                                    1  <Effective Thread QoS User Initiated, Requested Thread QoS User Initiated>
+
+  Binary Images:
+           0x104e7c000 -                ???  Aweme                   <480561FA-60AC-3303-AA42-1C47269A63CD>  /private/var/containers/Bundle/Application/14CE6C5C-1953-488D-82A9-E676B20E6988/Aweme.app/Aweme
+           0x10a1cc000 -                ???  ???                     <0983ACBE-2601-3F7E-9ADC-F30273C874C1>
+           0x1bc503000 -        0x1bc57ffff  libsystem_c.dylib       <149767E4-347B-3C8B-AE13-3536B731531B>  /usr/lib/system/libsystem_c.dylib
+           0x1bc693000 -        0x1bc707fff  libdispatch.dylib       <7D955D97-1C5C-3368-8CA0-3A60446E7491>  /usr/lib/system/libdispatch.dylib
+           0x1bc708000 -        0x1bc718fff  libsystem_pthread.dylib <9DDB64D4-46AE-3A21-B88C-2161C21C2ABB>  /usr/lib/system/libsystem_pthread.dylib
+           0x1bd7f9000 -        0x1bdd63fff  CoreGraphics            <346FBFA0-04FE-3034-9EDE-57D57F15259E>  /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics
+           0x1bdd67000 -        0x1be24bfff  ImageIO                 <1FC448FD-8EF3-365F-9467-95AFB9118B3E>  /System/Library/Frameworks/ImageIO.framework/ImageIO

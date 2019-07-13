@@ -52,6 +52,16 @@ if [[ $process == "" ]]; then
 fi
 echo $process
 
+#两种格式解析 
+# OS Version:      iPhone OS 13.0 (17A5508m)
+# OS Version:       iPhone OS 13.0 (Build 17A5508m)
+
+osVersion=$(grep "OS Version:" "$crashFile" | head -n 1)
+osVersion=${osVersion#*"Version:"}
+osVersion=${osVersion#*"OS"}
+osVersion=${osVersion/"Build "/""} 
+osVersion=`echo $osVersion` #去除空格
+echo "OS Version：$osVersion"
 
 result=$(grep -n "Binary Images:" "$crashFile")
 result2=${result%%:*} #删除第一个:后面的字符串,保留左边
@@ -77,7 +87,6 @@ uuid=`echo $uuid | tr '[A-Z]' '[a-z]'`
 
 echo ${arch}:$uuid
 echo "----------------------------------------------------------------"
-
 
 function getInfoFromDSYM(){
 	firstArch=$(dwarfdump --uuid "$1" | grep UUID | head -n 1)
@@ -205,6 +214,14 @@ echoResult "                 开始解析crash文件"
 ./symbolicatecrash "$crashFile" "$dsymFile" > "$newName" 2> /dev/null
 logLine
 echoResult "完成：生成新文件目录：${newName}"
+
+haveOS=$(find "${HOME}/Library/Developer/Xcode/iOS DeviceSupport" -name "$osVersion" -print)
+if [[ "$haveOS" == "" ]];then
+	echoRed "系统符号不存在【 OS ${osVersion} 】：可能无法解析系统调用栈"
+	echoRed "系统符号目录：${HOME}/Library/Developer/Xcode/iOS DeviceSupport"
+	echoRed "如需解析，请下载系统符号，可以到：https://github.com/lsmakethebest/LSiOSShell"
+fi
+
 open "$newName"
 
 
