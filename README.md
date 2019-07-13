@@ -25,3 +25,6 @@ sh dumpcrash.sh /Users/liusong/Desktop/xxxxx2019-7-1,6-18PM.crash
 sh dumpcrash.sh /Users/liusong/Desktop/xxxxx2019-7-1,6-18PM.crash xxx.dSYM
 ```
 
+- 如果电脑上不存在此系统的符号库，系统符号可能解析不出来
+  - 所以可以在此链接下载对应的系统符号 链接：https://pan.baidu.com/s/1HxS7HXH1vH0hBJ4L52lTow  密码:wbv2
+  - 解压完，复制到路径 ~/Library/Developer/Xcode/iOS DeviceSupport/  即可。
