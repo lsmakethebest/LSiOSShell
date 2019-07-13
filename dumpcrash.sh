@@ -28,12 +28,12 @@ dsymFile="$2"
 echoResult "crash文件：$crashFile"
 
 if ! [ -f "$1" ];then
-	echo "参数1：${1} 文件不存在"
+	echoRed "参数1：${1} 文件不存在"
 	exit 1
 fi
 
 if [ "$#" == "2" ] && [ ! -d "${2}" ];then
-	echo "参数2：${2} 文件不存在"
+	echoRed "参数2：${2} 文件不存在"
 	exit 1
 fi
 
