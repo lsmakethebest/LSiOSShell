@@ -24,6 +24,9 @@ fi
 
 crashFile="$1"
 dsymFile="$2"
+
+echoResult "crash文件：$crashFile"
+
 if ! [ -f "$1" ];then
 	echo "参数1：${1} 文件不存在"
 	exit 1
