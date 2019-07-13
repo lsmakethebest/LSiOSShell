@@ -33,7 +33,7 @@ sh dumpcrash.sh /Users/liusong/Desktop/xxxxx2019-7-1,6-18PM.crash xxx.dSYM
 
 
 
-- crash有两种格式 下面是一种唤醒次数过多crash一个原因描述
+- crash有两种格式 下面是另外一种唤醒次数过多crash一个原因描述，此种类型需再次解析Heaviest stack，此脚本会自动解析Heaviest stack 
 
   > Wakeups:          45001 wakeups over the last 48 seconds (934 wakeups per second average), exceeding limit of 150 wakeups per second over 300 seconds
   >

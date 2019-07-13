@@ -225,6 +225,55 @@ if [[ "$haveOS" == "" ]];then
 	echoRed "如需解析，请下载系统符号，可以到：https://github.com/lsmakethebest/LSiOSShell"
 fi
 
+
+
+function replaceContent(){
+	#file  content  lineNumber
+	fileName="$1"
+	content="$2"
+	line=$3
+
+	#获取指定字符串的行号
+	newLine=$(sed -n "/$content/=" "$fileName" | tail -n 1)
+	newLineContent=`sed -n "${newLine}p" "$fileName"`
+
+	#删除这行
+	$(sed -i "" "${line}d" "$fileName")
+	#在删除的行插入新字符串
+	$(sed -i "" "${line}i\\"$'\n'"${newLineContent}"$'\n' "$fileName")
+}
+
+
+function checkHeaviestStack(){
+
+	fileName="$1"
+	startStr="Heaviest stack for the target process:"
+	endStr="Powerstats for:"
+
+	lineStart=$(sed -n "/$startStr/=" "$fileName")
+	
+	if [[ "$lineStart" = "" ]]; then	
+		return 
+	fi
+
+	echoResult "存在Heaviest stack:再次解析"
+
+	lineStart=$(($lineStart+1))
+	lineEnd=$(sed -n "/$endStr/=" "$fileName")
+	lineEnd=$(($lineEnd-3))
+
+	while [[ $lineStart -le $lineEnd ]]; do
+		lineContent=`sed -n "${lineStart}p" "$fileName"`
+		lineContent=${lineContent##*"["}
+		lineContent=${lineContent%"]"*}
+		replaceContent "$fileName" "$lineContent" $lineStart
+		lineStart=$(($lineStart+1))
+	done
+	echoResult "存在Heaviest stack:解析完成"
+}
+
+checkHeaviestStack "$newName"
+
 open "$newName"
 
 
