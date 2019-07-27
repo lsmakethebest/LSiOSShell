@@ -6,10 +6,10 @@ sh build_framework.sh xcodeproj目录 Debug/Release
   //参数二不传默认Release
   sh build_framework.sh /Users/liusong/Documents/TestFramework Debug
 ```
-如果主工程不是静态库或动态库，可以 sh build_framework.sh  xcodeproj目录 Debug/Release  静态库或动态库target名称
+如果主工程不是静态库/动态库(即主工程是测试demo，其他target是静态库、动态库)，可以 sh build_framework.sh  xcodeproj目录 Debug/Release  静态库/动态库target名称
 ```
   //指定targetName情况 必须指定是Debug或Release 不可省略此参数
-  sh build_framework.sh /Users/liusong/Documents/TestFramework Debug  FrameworkA
+  sh build_framework.sh /Users/liusong/Documents/TestFramework Debug FrameworkA
 ```
 
 ### dumpcarsh.sh 解析.crash文件 利用系统自带的symbolicatecrash
