@@ -16,6 +16,24 @@ RES='\033[0m'         # 清除颜色
 need_verbose="0"
 delete_ipsw_cache="1"
 
+echoResult() {
+	echo -e "${GREEN}${1}${RES}"
+}
+
+echoRed(){
+	echo -e "${RED}${1}${RES}"
+}
+
+usage(){
+	echoResult '请输入参数：'
+	echoResult '\t必传参数1：Hardware Model'
+	echoResult '\t必传参数2：OS Version 中的 buildId:例如：17D50'
+	echoResult '\t可选参数 -d 处理完后，自动删除下载的ipsw文件，默认1，0：不删除 1：删除'
+	echoResult '\t可选参数 -v 打印详细日志'
+	echoResult '\t可选参数 -h 查看使用说明'
+}
+
+
 if [ $# -lt 2 ]; then
 	usage
 	exit
@@ -50,24 +68,6 @@ while [ "$1" != "" ]; do
     # Next arg
     shift
 done
-
-
-usage(){
-	echoResult '请输入参数：'
-	echoResult '\t必传参数1：Hardware Model'
-	echoResult '\t必传参数2：OS Version 中的 buildId:例如：17D50'
-	echoResult '\t可选参数 -d 处理完后，自动删除下载的ipsw文件，默认1，0：不删除 1：删除'
-	echoResult '\t可选参数 -v 打印详细日志'
-	echoResult '\t可选参数 -h 查看使用说明'
-}
-
-echoResult() {
-	echo -e "${GREEN}${1}${RES}"
-}
-
-echoRed(){
-	echo -e "${RED}${1}${RES}"
-}
 
 
 function parse_json(){
