@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# sh build_framework.sh xcodeproj所在目录 Debug/Release
 
 cd $1
 
@@ -102,7 +103,8 @@ fi
 #压缩sdk输出路径下的所有文件
 cd ${buildPath}/${temp_path}
 zip -rq ${exportSdkPath}/${sdk_zip_name} ./*
-
+echo "完成-------"
+echo "${exportSdkPath}/${sdk_zip_name}"
 
 #删除build文件
 if [ -d ${buildPath} ]; then
