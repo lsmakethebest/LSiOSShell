@@ -45,7 +45,7 @@ echoResult "                 crash文件中信息"
 logLine
 
 process=$(grep Process "$crashFile" | head -n 1)
-process=${process%%[*}
+process=${process%%'['*}
 process=${process#*:}
 process=${process//" "/""}
 if [[ $process == "" ]]; then
@@ -103,7 +103,7 @@ function getInfoFromDSYM(){
 	firstUUID=${firstUUID//"-"/""}
 	firstUUID=${firstUUID//" "/""}
 	firstUUID=`echo $firstUUID | tr '[A-Z]' '[a-z]'`
-	firstResult2=${firstArch#*(}
+	firstResult2=${firstArch#*'('}
 	firstArchName=${firstResult2%)*}
 
 
@@ -112,8 +112,8 @@ function getInfoFromDSYM(){
 	secondUUID=${secondUUID//"-"/""}
 	secondUUID=${secondUUID//" "/""}
 	secondUUID=`echo $secondUUID | tr '[A-Z]' '[a-z]'`
-	secondResult2=${secondArch#*(}
-	secondArchName=${secondResult2%)*}
+	secondResult2=${secondArch#*'('}
+	secondArchName=${secondResult2%')'*}
 
 	echo "${dsymProcess}\\n${firstArchName}:${firstUUID}\\n${secondArchName}:${secondUUID}"
 
@@ -222,7 +222,7 @@ haveOS=$(find "${HOME}/Library/Developer/Xcode/iOS DeviceSupport" -name "$osVers
 if [[ "$haveOS" == "" ]];then
 	echoRed "系统符号不存在【 OS ${osVersion} 】：可能无法解析系统调用栈"
 	echoRed "系统符号目录：${HOME}/Library/Developer/Xcode/iOS DeviceSupport"
-	echoRed "如需解析，请下载系统符号，可以到：https://github.com/lsmakethebest/LSiOSShell"
+	echoRed "如需解析，请下载系统符号，可以使用：https://github.com/lsmakethebest/LSiOSShell/fetchDeviceSupport.sh"
 fi
 
 
