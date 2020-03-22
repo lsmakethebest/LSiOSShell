@@ -141,7 +141,7 @@ rm -rf $output_path
 
 archive_type=$(echo $target_dyld_folder | cut -d '_' -f 4)
 tartget_folder="$system_version ($build_id) $archive_type"
-result=`cd -` 
+cd -
 device_support_path="${HOME}/Library/Developer/Xcode/iOS DeviceSupport/$tartget_folder/Symbols"
 if [ ! -d "$device_support_path" ]; then
 	mkdir -p "$device_support_path"
