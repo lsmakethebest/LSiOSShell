@@ -234,7 +234,7 @@ function replaceContent(){
 	line=$3
 
 	#获取指定字符串的行号
-	newLine=$(sed -n "/$content/=" "$fileName" | tail -n 1)
+	newLine=$(sed -n "/$content/=" "$fileName" | tail -n +2 | head -n 1)
 	newLineContent=`sed -n "${newLine}p" "$fileName"`
 
 	#删除这行
