@@ -118,7 +118,7 @@ def addXcodeproj(workspace_path,xcodeproj_path,bundleName):
 		lines = f.readlines()
 		index = -1
 		for i in range(len(lines)):
-			if bundleName+'.xcodeproj' in lines[i]:
+			if '/'+bundleName+'.xcodeproj' in lines[i]:
 				index = i
 				break
 		if index > 0:
