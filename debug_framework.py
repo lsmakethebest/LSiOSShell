@@ -226,8 +226,9 @@ def get_all_not_source_bundles():
 
 def main():
 	if len(sys.argv) < 2:
-		print('二进制调试\n  \tcd 工作目录(AMapiPhone.xcworkspace所在目录)\n \tpython debug_framework.py RouteCommute,MainBundle')
-		print('\n删除项目的二进制源码以及代码缓存(拉取的二进制源码)\n \tcd 工作目录(AMapiPhone.xcworkspace所在目录)\n  \tpython debug_framework.py clear')
+		print('二进制调试\n  \tcd 工作目录(AMapiPhone.xcworkspace所在目录)\n \t ldebug add RouteCommute,MainBundle\n添加所有非源码bundle\n\tldebug add')
+		print('\n从项目中删除project以及拉取的源码\n \tcd 工作目录(AMapiPhone.xcworkspace所在目录)\n\tldebug delete RouteCommute,MainBundle\n删除所有\n\tldebug delete')
+		print('\n删除代码缓存(拉取的二进制源码)\n \tldebug clear')
 		exit()
 
 	starttime = time.time()
