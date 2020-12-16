@@ -10,6 +10,7 @@ import requests
 native_base_bundles_path = '/SCM/Local/TitanBaseline/NativeBaseBundles.json'
 local_source_bundles_path = '/SCM/Local/LocalSourceBundlesConfig.json'
 cache_path = '/Users/ios/.jenkins/workspace'
+old_cache_path = '/var/imkit/'
 bundle_info_url = ''
 
 def os_popen(cmd):
@@ -85,6 +86,13 @@ def batch_pull_bundle(url,sourcePath,branch,commit_id):
 			os.system(f'sudo mkdir -p {cache_path}')
 			# 第一次clone需授予权限
 			os.system(f'sudo chmod -R 777 {cache_path}')
+
+		if not os.path.exists(old_cache_path):
+			os.system(f'sudo mkdir -p {old_cache_path}')
+			# 第一次clone需授予权限
+			os.system(f'sudo chmod -R 777 {old_cache_path}')
+
+
 		os.system(f'git clone -b {branch} --single-branch {url} {sourcePath}')
 		os.chdir(sourcePath)
 		os.system(f'git reset {commit_id} --hard')
@@ -160,6 +168,7 @@ def checkout_all_bundle(baseline_bundles,debug_bundles,all_not_source_bundles):
 
 def clear_all_cache():
 	os_popen(f'sudo rm -rf {cache_path}')
+	os_popen(f'sudo rm -rf /var/imkit')
 
 def delete_bundles(bundles):
 	add_bundles = []
