@@ -201,7 +201,6 @@ def delete_bundles(bundles):
 			path = '/' + result[1] + '/' + result[2] + '/' + result[3]
 		else:
 			path = '/' + result[1] + '/' + result[2] + '/' + result[3] + '/' + result[4] + '/' + result[5]
-		print(path)
 		os_popen(f'rm -rf {path}')
 
 	s = ''.join(lines)  # 将列表转换为string
