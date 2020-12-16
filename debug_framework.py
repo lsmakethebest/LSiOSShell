@@ -4,11 +4,12 @@
 import os
 import sys
 import json
-import datetime
+import time
 import requests
 
-native_base_bundles_path = ''
-cache_path = ''
+native_base_bundles_path = '/SCM/Local/TitanBaseline/NativeBaseBundles.json'
+local_source_bundles_path = '/SCM/Local/LocalSourceBundlesConfig.json'
+cache_path = '/Users/ios/.jenkins/workspace'
 bundle_info_url = ''
 
 def os_popen(cmd):
@@ -84,7 +85,7 @@ def batch_pull_bundle(url,sourcePath,branch,commit_id):
 			os.system(f'sudo mkdir -p {cache_path}')
 			# 第一次clone需授予权限
 			os.system(f'sudo chmod -R 777 {cache_path}')
-		os.system(f'git clone -b {branch} {url} {sourcePath}')
+		os.system(f'git clone -b {branch} --single-branch {url} {sourcePath}')
 		os.chdir(sourcePath)
 		os.system(f'git reset {commit_id} --hard')
 		os.chdir(current_path)
@@ -134,17 +135,21 @@ def change_bundle_pbxproj(path,bundle):
 
 
 # 将bundle切换为源码仅用于调试不会用此代码编译
-def checkout_all_bundle(baseline_bundles,debug_bundles):
+def checkout_all_bundle(baseline_bundles,debug_bundles,all_not_source_bundles):
 	workspace_path = get_workspacePath()
 	for bundle_name in debug_bundles:
+		if bundle_name not in all_not_source_bundles:
+			print(f'error:【{bundle_name}】 bundle名字不正确，或者此bundle已经被cab为源码了')
+			exit()
 		data = get_bundle_url_and_commitid(bundle_name,baseline_bundles)
 		framework_path = get_local_framework_path(bundle_name)
 		sourceCodePath = get_bundle_comp_dir(framework_path)
-		#.m文件目录和AT_comp_dir目录不一致，所以需要重新修改
-		sourceCodePath = sourceCodePath.replace('Pods','DevPods')
 		repo = data['repo']
-		index = repo.find('amap_bundle')
-		sourceCodePath = sourceCodePath + '/' + repo[index:-4]
+		if '/var/imkit' not in sourceCodePath:
+			#.m文件目录和AT_comp_dir目录不一致，所以需要重新修改
+			sourceCodePath = sourceCodePath.replace('Pods','DevPods')
+			index = repo.find('amap_bundle')
+			sourceCodePath = sourceCodePath + '/' + repo[index:-4]
 		print(f'pulling => {repo}  \nbranch:{data["branch"]} \ncommitId:{data["commitId"]} \npath:{sourceCodePath}')
 		batch_pull_bundle(data['repo'], sourceCodePath,data['branch'],data['commitId'])
 		print('adding ' + bundle_name + ' to xcworkspace')
@@ -153,36 +158,103 @@ def checkout_all_bundle(baseline_bundles,debug_bundles):
 		addXcodeproj(workspace_path,xcodeproj_path,bundle_name)
 		print('----------------------------------------------------')
 
-def clear_caches():
+def clear_all_cache():
 	os_popen(f'sudo rm -rf {cache_path}')
+
+def delete_bundles(bundles):
+	add_bundles = []
+	add_bundles_info = {}
 	workspace_path = get_workspacePath()
+	lines = None
 	with open(workspace_path + '/contents.xcworkspacedata', 'r') as f:
 		lines = f.readlines()
-		index = -1
 		for i in range(len(lines)):
-			if 'group:/Users/ios/.jenkins/workspace' in lines[i]:
-				index = i
-				break
-		if index > 0:
-			del lines[i-1:len(lines)-1]
+			line = lines[i]
+			if "group:/Users/ios/.jenkins/workspace" in line or "group:/var/imkit/" in line:
+				bundle_name = os.path.basename(line).replace('.xcodeproj">','').replace('\n','')
+				add_bundles.append(bundle_name)
+				add_bundles_info[bundle_name] = line
+	if bundles == None:
+		bundles = add_bundles
 
-		s = ''.join(lines)  # 将列表转换为string
+	for bundle_name in bundles:
+		if bundle_name not in add_bundles:
+			print(f'error:【{bundle_name}】名字错误或者没有被添加到工程中，所以不能移除，请检查确认')
+			exit()
+		line = add_bundles_info[bundle_name]
+		index = lines.index(line)
+		del lines[index-1:index+2]
+		# location = "group:/Users/ios/.jenkins/workspace/com.amap.ios.bundle_AMapNetwork_1.0.0.20201201231437/iOS_5785/DevPods/amap_bundle_amapnetwork/AMapNetwork.xcodeproj">
+		# location = "group:/var/imkit/0bbf9a8f41cce10398f1450969f8e3c2/amap_bundle_lib_fmdb/FMDB.xcodeproj">
+		path = ''
+		result = line.split('/')
+		if 'var/imkit/' in line:
+			path = '/' + result[1] + '/' + result[2] + '/' + result[3]
+		else:
+			path = '/' + result[1] + '/' + result[2] + '/' + result[3] + '/' + result[4] + '/' + result[5]
+		print(path)
+		os_popen(f'rm -rf {path}')
+
+	s = ''.join(lines)  # 将列表转换为string
 	with open(workspace_path + '/contents.xcworkspacedata', 'w') as f:     # 写文件，开始的时候会先清空原文件，参考w的用法。如果不用with open，只是open，要注意最后将文件关闭。
 		f.write(s)
 
+
+# 获取本地已经切为源码的bundles
+def get_source_code_bundles():
+	result = load_json(os.getcwd() + local_source_bundles_path)['bundles']
+	bundles = []
+	for bundle_info in result:
+		bundles.append(bundle_info['artifactId'])
+	return bundles
+
+
+def get_all_framework_bundles():
+	bundles = get_all_baseline_bundles_info()
+	bundle_names = []
+	for bundle in bundles:
+		bundle_names.append(bundle['artifactId'])
+	return bundle_names
+
+def get_all_not_source_bundles():
+	all_bundles = get_all_framework_bundles()
+	source_bundles = get_source_code_bundles()
+	for bundle_name in source_bundles:
+		if bundle_name in all_bundles:
+			all_bundles.remove(bundle_name)
+	return all_bundles
 
 def main():
 	if len(sys.argv) < 2:
 		print('二进制调试\n  \tcd 工作目录(AMapiPhone.xcworkspace所在目录)\n \tpython debug_framework.py RouteCommute,MainBundle')
 		print('\n删除项目的二进制源码以及代码缓存(拉取的二进制源码)\n \tcd 工作目录(AMapiPhone.xcworkspace所在目录)\n  \tpython debug_framework.py clear')
 		exit()
-	if sys.argv[1] == 'clear':
-		clear_caches()
-		return
-	baseline_bundles = get_all_baseline_bundles_info()
-	bundles = sys.argv[1].split(',')
-	print(bundles)
-	checkout_all_bundle(baseline_bundles,bundles)
+
+	starttime = time.time()
+
+	is_all = None
+	bundles = []
+	all_not_source_bundles = get_all_not_source_bundles()
+	if len(sys.argv) == 3:
+		is_all = False
+		bundles = sys.argv[2].split(',')
+	else:
+		is_all = True
+		bundles = all_not_source_bundles
+	bundles.sort()
+
+	
+
+	if sys.argv[1] == 'del' or sys.argv[1] == 'delete':
+		delete_bundles(bundles if is_all == False else None)
+	elif sys.argv[1] == 'add':	
+		baseline_bundles = get_all_baseline_bundles_info()
+		checkout_all_bundle(baseline_bundles,bundles,all_not_source_bundles)
+	elif sys.argv[1] == 'clear':
+		clear_all_cache()
+
+	endtime = time.time()
+	print(f'耗时：{endtime - starttime}')
 
 main()
 
