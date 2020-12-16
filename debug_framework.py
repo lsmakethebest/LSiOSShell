@@ -113,7 +113,7 @@ def addXcodeproj(workspace_path,xcodeproj_path,bundleName):
 				index = i
 				break
 		if index > 0:
-			del lines[i-1:i+1]
+			del lines[i-1:i+2]
 
 		lines.insert(len(lines)-1,f'   <FileRef\n      location = \"group:{xcodeproj_path}\">\n   </FileRef>\n')
 		s = ''.join(lines)  # 将列表转换为string
