@@ -183,7 +183,7 @@ def modify_xcodeproj(is_install):
 		content_new = content
 
 	config_sh_old = f'\\"${{PODS_ROOT}}/Target Support Files/Pods-{target_name}/Pods-{target_name}-resources.sh\\"\\n'
-	config_sh_add = "/usr/local/bin/cresource add-resources"
+	config_sh_add = "/usr/local/bin/cresource add-resources\\n"
 
 	config_sh_uninstall = config_sh_old
 	config_sh_install = f'#{config_sh_old}{config_sh_add}'
