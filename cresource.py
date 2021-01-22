@@ -198,6 +198,9 @@ def modify_xcodeproj(is_install):
 	if content != content_new:
 		with open(pbxproj_path,'w') as f:
 			f.write(content_new)
+			print('[CP] Copy Pods Resources 处理完成')
+	else:
+		print('[CP] Copy Pods Resources 无需处理')
 
 	resources_sh_path = f'{os.getcwd()}/Pods/Target Support Files/Pods-{target_name}/Pods-{target_name}-resources.sh'
 
@@ -223,8 +226,9 @@ def modify_xcodeproj(is_install):
 	if sh_content != sh_content_new:
 		with open(resources_sh_path,'w') as f:
 			f.write(sh_content_new)
-
-	print('处理完成')
+			print(f'{os.path.basename(resources_sh_path)} 处理完成')
+	else:
+		print(f'{os.path.basename(resources_sh_path)} 无需处理')
 
 def main():
 	if len(sys.argv) > 1:
