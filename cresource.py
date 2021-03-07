@@ -6,6 +6,7 @@ import sys
 import json
 import time
 import datetime
+import uuid
 
 def os_popen(cmd):
 	return os.popen(cmd).read()
@@ -144,15 +145,15 @@ def cache_resource():
 		add_resources = True
 
 	if add_resources:
-		print('调用脚本')
-		result = os_popen(shell_path.replace(' ','\ '))
+		print('编译图片资源，调用脚本')
+		result = os_popen(shell_path.replace(' ','\ ') + ' build')
 		with open(last_file_path,'w') as f:
 			print(f'将resources信息 写入 {last_file_path}\n')
 			f.write(resource_str)
 
 		print(result)
 	else:
-		print('不调用脚本')
+		print('使用缓存图片资源，不调用脚本')
 	start_1 = datetime.datetime.now()
 
 	unlocalized_resources_folder_path = os.environ.get('UNLOCALIZED_RESOURCES_FOLDER_PATH')
@@ -162,6 +163,21 @@ def cache_resource():
 	print(f'copy Assets.car耗时:{datetime.datetime.now()-start_1}')
 	end = datetime.datetime.now()
 	print(f'总共耗时:{end-start}')
+
+
+def get_target_name():
+	items = os.listdir(".")
+	file_name = ''
+	for name in items:
+		if name.endswith(".xcodeproj"):
+			file_name = name
+			break
+	if file_name == '':
+		print('请到工程目录执行命令(如:/Users/liusong/Desktop/amap/iOS_5620)')
+		return
+
+	target_name = file_name.split('.')[0]
+	return target_name
 
 def modify_xcodeproj(is_install):
 	items = os.listdir(".")
@@ -182,26 +198,84 @@ def modify_xcodeproj(is_install):
 		content = f.read()
 		content_new = content
 
-	config_sh_old = f'\\"${{PODS_ROOT}}/Target Support Files/Pods-{target_name}/Pods-{target_name}-resources.sh\\"\\n'
-	config_sh_add = "/usr/local/bin/cresource add-resources\\n"
+	content_arr = content.split('\n')
 
+	for line in content_arr:
+		if '[CP] Copy Pods Resources */,' in line:
+			config_sh_old = line
+			break
+
+
+	sh_name = '[CP] Copy Pods Resources Accelerate'
+	uuid = get_uuid(sh_name)
+	config_sh_add = f"\t\t\t\t{uuid} /* {sh_name} */,"
 	config_sh_uninstall = config_sh_old
-	config_sh_install = f'#{config_sh_old}{config_sh_add}'
+	config_sh_install = f'{config_sh_add}\n{config_sh_old}'
+
+
+
+	build_action_mask = 0
+	for line in content_arr:
+		if 'buildActionMask =' in line:
+			build_action_mask = line.split('=')[-1].replace(' ','').replace(';','')
+			break
+
+	for line in content_arr:
+		if '[CP] Copy Pods Resources */ = ' in line:
+			config_sh_old_2 = line
+			break
+
+
+	config_sh_add_2 = '''		uuid_temp /* sh_name */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = temp;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "sh_name";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cresource cache-resources\\n";
+		};'''
+
+	config_sh_add_2 = config_sh_add_2.replace('uuid_temp',uuid)
+	config_sh_add_2 = config_sh_add_2.replace('sh_name',sh_name)
+	config_sh_add_2 = config_sh_add_2.replace('temp',str(build_action_mask))
+
+	config_sh_uninstall_2 = config_sh_old_2
+	config_sh_install_2 = f'{config_sh_add_2}\n{config_sh_old_2}'
+
 
 	if is_install:
 		if config_sh_add not in content:
 			content_new = content.replace(config_sh_uninstall,config_sh_install)
+		if config_sh_add_2 not in content_new:
+			content_new = content_new.replace(config_sh_uninstall_2,config_sh_install_2)
 	else:
 		if config_sh_add in content:
-			content_new = content.replace(config_sh_install,config_sh_uninstall)
+			content_new = content_new.replace(config_sh_install,config_sh_uninstall)
+		#顺序被打乱了，所以和上面逻辑不一样
+		if config_sh_add_2 in content_new:
+			content_new = content_new.replace(config_sh_add_2+'\n\t','\t')
 
 	if content != content_new:
 		with open(pbxproj_path,'w') as f:
 			f.write(content_new)
-			print('[CP] Copy Pods Resources 处理完成')
+			print('工程文件 project.pbxproj 修改完成')
 	else:
-		print('[CP] Copy Pods Resources 无需处理')
+		print('工程文件 project.pbxproj 无需修改')
 
+	# 处理resources.sh
+	modify_resource_sh(is_install,target_name)
+
+def modify_resource_sh(is_install,target_name):
 	resources_sh_path = f'{os.getcwd()}/Pods/Target Support Files/Pods-{target_name}/Pods-{target_name}-resources.sh'
 
 	sh_content = ''
@@ -212,27 +286,39 @@ def modify_xcodeproj(is_install):
 
 	shell_content_old = 'rm -f "$RESOURCES_TO_COPY"'
 	shell_content_add = 'UNLOCALIZED_RESOURCES_FOLDER_PATH="tempAssets"\nmkdir -p "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}"'
-
 	shell_content_uninstall = shell_content_old
 	shell_content_install = f'{shell_content_old}\n\n{shell_content_add}'
+
+	shell_content_old_2 = "trap 'on_error $LINENO' ERR"
+	shell_content_add_2 = 'if [ $# -eq 0 ] ; then\n  echo "此步骤不会执行任何逻辑，真正执行编译图片逻辑在[CP] Copy Pods Resources Accelerate步骤中"\n  exit 0\nfi'
+	shell_content_uninstall_2 = shell_content_old_2
+	shell_content_install_2 = f'{shell_content_old_2}\n\n{shell_content_add_2}'
 
 	if is_install:
 		if shell_content_add not in sh_content:
 			sh_content_new = sh_content.replace(shell_content_uninstall,shell_content_install)
+		if shell_content_add_2 not in sh_content:
+			sh_content_new = sh_content_new.replace(shell_content_uninstall_2,shell_content_install_2)
 	else:
 		if shell_content_add in sh_content:
 			sh_content_new = sh_content.replace(shell_content_install,shell_content_uninstall)
+		if shell_content_add_2 in sh_content:
+			sh_content_new = sh_content_new.replace(shell_content_install_2,shell_content_uninstall_2)
 
 	if sh_content != sh_content_new:
 		with open(resources_sh_path,'w') as f:
 			f.write(sh_content_new)
-			print(f'{os.path.basename(resources_sh_path)} 处理完成')
+			print(f'{os.path.basename(resources_sh_path)} 修改完成')
 	else:
-		print(f'{os.path.basename(resources_sh_path)} 无需处理')
+		print(f'{os.path.basename(resources_sh_path)} 无需修改')
+
+def get_uuid(name):
+	return str(uuid.uuid3(uuid.NAMESPACE_DNS, name)).replace('-','').upper()
 
 def main():
 	if len(sys.argv) > 1:
-		if sys.argv[1] == 'add-resources':
+		if sys.argv[1] == 'cache-resources':
+			modify_resource_sh(True,get_target_name())
 			cache_resource()
 		elif sys.argv[1] == 'install':
 			modify_xcodeproj(True)
