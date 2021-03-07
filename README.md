@@ -40,4 +40,3 @@ sh dumpcrash.sh /Users/liusong/Desktop/xxxxx2019-7-1,6-18PM.crash xxx.dSYM
   > 2.Wakeups:          45002 wakeups over the last 267 seconds (169 wakeups per second average), exceeding limit of 150 wakeups per second over 300 seconds
 
 
-
