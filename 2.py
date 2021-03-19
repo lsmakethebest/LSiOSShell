@@ -123,4 +123,3 @@ for i in range(0,len(result)):
 name = datetime.datetime.strftime(datetime.datetime.now(),'%Y-%m-%d-%H%M%S')
 myxls.save(f'{os.path.expanduser("~")}/Desktop/{name}.xls')
 
-
