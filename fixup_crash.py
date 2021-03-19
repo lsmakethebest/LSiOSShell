@@ -18,7 +18,6 @@ def get_binary_arch_type(crash_info):
 			return arch_type
 
 
-
 def get_thread_state_content(crash_info):
 	thread_state = crash_info['threadState']
 	crash_index = str(crash_info['legacyInfo']['threadTriggered']['index'])
