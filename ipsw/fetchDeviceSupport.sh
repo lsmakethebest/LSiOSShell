@@ -78,14 +78,20 @@ function get_url(){
 	echo $1 | grep -Eo 'http:.*ipsw'
 }
 
+url="https://api.ipsw.me/v4/ipsw/"$hardware_model/$build_id
+result=$(curl $url -s)
+if [ "$result" =  "" ];then
+	echo "未找到ipsw => "$url
+	exit 0
+fi
 
-result=$(curl "https://api.ipsw.me/v4/ipsw/"$hardware_model/$build_id -s)
+
 system_version=$(parse_json $result "version")
 download_url=$(get_url $result)
 
+
 # echo $result
 # echo $system_version
-echo $download_url
 
 if [ ! -d $cache_path ]; then
 	mkdir $cache_path
@@ -97,6 +103,7 @@ fi
 
 
 echoResult "start downloading ipsw……"
+echo $download_url"\n"
 
 curl -C - -o $file_path $download_url
 
