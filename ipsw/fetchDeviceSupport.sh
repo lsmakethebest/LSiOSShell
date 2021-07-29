@@ -90,8 +90,8 @@ system_version=$(parse_json $result "version")
 download_url=$(get_url $result)
 
 
-# echo $result
-# echo $system_version
+echo $result
+echo $system_version
 
 if [ ! -d $cache_path ]; then
 	mkdir $cache_path
