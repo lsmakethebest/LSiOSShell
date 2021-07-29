@@ -26,13 +26,15 @@ items = []
 # type = '2' # 会员信息(ecrm_member_list)    https://ecrm.taobao.com/p/customer/ecrmMemberList.htm?spm=a1za3.8127598.0.0.62bd8573285BzV&groupId=11349528028
 # type = '3' # 已选(querySelectedItemList)  https://aliyx.tmall.com/shopAct/edit.html?spm=a21y7.8602192.0.0.58a11b58da00wL#/items/16522155128?_k=2m7wyh
 # type = '4' #我是卖家营销工作台店铺宝编辑活动(getItemList) https://shell.mkt.taobao.com/shopAct/getItemList?activityId=17986203561&itemIdOrName=&outerId=&cateId=&auctionStatus=0&pageNo=1&pageSize=10
+# type = '5' #我是卖家营销工作台店铺宝(getList)                   https://shell.mkt.taobao.com/shopAct/index#/?spm=a21y7.12701734.0.0.45c85252vHPlVT&tabKey=custom
+# type = '6' #官方大促天猫520礼遇季(queryListData)                   https://sale.tmall.com/page/campaign/sale.htm?campaignId=31858
 
 def handle_type1_price(item):
 	price = ''
 	if item['originalPriceMin'] == item['originalPriceMax']:
 		price = item["originalPriceMin"]
 	else:
-		price = f'{item["originalPriceMin"]}~{item["originalPriceMax"]}'
+		price = f'{item.get("originalPriceMin")}~{item.get("originalPriceMax")}'
 	return price
 
 def handle_type4_name(item,key):
@@ -63,7 +65,16 @@ def handle_type4_operation(item,key):
 			price = '￥' + str(item['price'])
 			price.replace('.00','')
 			return price
-		
+	
+
+
+def handle_type6_price(item,key):
+	if item['originalPriceMin'] == item['originalPriceMax']:
+		return str(item['originalPriceMin']).replace('.0','')
+	else:
+		text = str(item['originalPriceMin']) + '-' + str(item['originalPriceMax'])
+		text = text.replace('.0','')
+		return text
 
 if type_str == '1':
 	current_page_string = 'currentPage'
@@ -204,6 +215,48 @@ elif type_str == '4':
 
 	items = [
 		{
+			"key":"base.activityId",
+			"name":"活动编号",
+			"width":700
+		},
+		{
+			"key":"base.activityName",
+			"name":"活动名称",
+			"width":220
+		},
+		{
+			"key":"price",
+			"name":"活动详情",
+			"width":220,
+			"func":handle_type4_operation
+		},
+		{
+			"key":"lowerPriceStr",
+			"name":"预计最低到手价",
+			"width":220,
+			"func":handle_type4_operation
+		},
+		{
+			"key":"quantity",
+			"name":"库存",
+			"width":220
+		},
+		{
+			"key":"selected",
+			"name":"操作",
+			"width":220,
+			"func":handle_type4_operation
+		}
+	]
+
+elif type_str == '5':
+	current_page_string = 'pageNo'
+	list_key = ['data',"data"];
+	total_count_key = ['data','totalCount']
+	page_size_count = 10
+
+	items = [
+		{
 			"key":"itemName",
 			"name":"商品描述",
 			"width":700
@@ -235,6 +288,66 @@ elif type_str == '4':
 			"name":"操作",
 			"width":220,
 			"func":handle_type4_operation
+		}
+	]
+elif type_str == '6':
+	current_page_string = 'currentPage'
+	list_key = ['data','list'];
+	total_count_key = ['data','total']
+	page_size_count = 10
+
+	items = [
+		{
+			"key":"itemName",
+			"name":"商品",
+			"width":700
+		},
+		{
+			"key":"itemId",
+			"name":"商品ID",
+			"width":220
+		},
+		{
+			"key":"juId",
+			"name":"营销ID",
+			"width":220,
+		},
+		{
+			"key":"icStatusName",
+			"name":"商品状态",
+			"width":220,
+		},
+		{
+			"key":"price",
+			"name":"一口价",
+			"width":220,
+			"func":handle_type6_price
+		},
+		{
+			"key":"price",
+			"name":"专柜价",
+			"width":220,
+			"func":handle_type6_price
+		},
+		{
+			"key":"lowestMarketPrice",
+			"name":"最低标价",
+			"width":220,
+		},
+		{
+			"key":"activityPrice",
+			"name":"活动价格",
+			"width":220,
+		},
+		{
+			"key":"dealPrice",
+			"name":"预计普惠成交价",
+			"width":220,
+		},
+		{
+			"key":"statusName",
+			"name":"活动状态",
+			"width":220,
 		}
 	]
 
@@ -356,7 +469,7 @@ def write_excel(result):
 					sheet1.write(i+1,m,f'{content}',style)
 
 				else:
-					content = item[set_item["key"]]
+					content = item.get(set_item["key"]) if item.get(set_item["key"]) else ''
 					sheet1.write(i+1,m,f'{content}',style)
 
 
