@@ -75,7 +75,7 @@ function parse_json(){
 }
 
 function get_url(){
-	echo $1 | grep -Eo 'http:.*ipsw'
+	echo $1 | grep -Eo 'http.*ipsw'
 }
 
 url="https://api.ipsw.me/v4/ipsw/"$hardware_model/$build_id
