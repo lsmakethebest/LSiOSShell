@@ -7,6 +7,9 @@ import os
 import json
 
 app_name = ''
+app_start_address = ''
+app_end_address = ''
+app_uuid = ''
 
 def os_popen(cmd):
     # 执行 os.system(cmd)，返回执行结果
@@ -78,7 +81,7 @@ def write_file(crash_info,file_path,crash_header_info):
 	write_content += f'\nCode Type:             {crash_info["cpuType"]}'
 	write_content += f'\nRole:                  {crash_info["procRole"]}'
 	write_content += f'\nParent Process:        {crash_info["parentProc"]}'
-	write_content += f'\nCoalition:             {crash_info["parentProc"]} [{crash_info["coalitionID"]}]'
+	write_content += f'\nCoalition:             {crash_info["coalitionName"]} [{crash_info["coalitionID"]}]'
 
 	write_content += f'\n\nDate/Time:             {crash_info["captureTime"]}'
 	write_content += f'\nLaunch Time:           {crash_info["procLaunch"]}'
@@ -89,13 +92,15 @@ def write_file(crash_info,file_path,crash_header_info):
 	
 
 	write_content += f'\nException Type:        {crash_info["exception"]["type"]}'
-	write_content += f'\nException Codes:       {crash_info.get("exception").get("code")}'
+	write_content += f'\nException Codes:       {crash_info.get("exception").get("codes")}'
 	write_content += f'\nsignal:                {crash_info["exception"]["signal"]}'
-	write_content += f'\nsubtype:               {crash_info["exception"].get("subtype")}'
+	subtype = crash_info["exception"].get("subtype")
+	if subtype:
+		write_content += f'\nsubtype:               {subtype}'
 
-	vmRegionInfo = crash_info.get('vmRegionInfo')
+	vmRegionInfo = crash_info.get('vmregioninfo')
 	if vmRegionInfo:
-		write_content += f'\vmRegionInfo: {vmRegionInfo}'		
+		write_content += f'\nvmRegionInfo: {vmRegionInfo}'		
 
 	threads = crash_info['threads']
 	thread_count = len(threads)
@@ -105,12 +110,65 @@ def write_file(crash_info,file_path,crash_header_info):
 	write_content += f'\n\nTriggered by Thread:   {triggered_thread}'
 
 	all_binarys = crash_info['usedImages']
+
+	lastExceptionBacktrace = crash_info.get("lastExceptionBacktrace")
+	if lastExceptionBacktrace:
+		write_content += f'\n\nLast Exception Backtrace:'
+		content = '('
+		for i in range(len(lastExceptionBacktrace)):
+			backtrace = lastExceptionBacktrace[i]
+			address = all_binarys[backtrace['imageIndex']]['base']	+ backtrace['imageOffset']
+			space = " "
+			if i == 0:
+				space = ""
+				pass
+			content += f'{space}{hex(address)}'
+		content += ")"
+		write_content += f'\n{content}'
+
+	
 	for i in range(thread_count):
 		write_content = write_thread_content(i,triggered_thread,threads[i],write_content,all_binarys)
 
-	write_content += f'\n\n'
 
-	write_content += f'\nBinary Images:\n'
+# Thread 129 crashed with ARM Thread State (64-bit):
+# x0: 0x0000000000000000   x1: 0x0000000000000000   x2: 0x0000000000000000   x3: 0x0000000000000000
+# x4: 0x0000000000000000   x5: 0x0000000000000000   x6: 0x0000000000000000   x7: 0x0000000000000000
+# x8: 0xf68be07968b68437   x9: 0xf68be07a64757437  x10: 0x0000000061987653  x11: 0x0000000000000000
+# x12: 0x0000000000000030  x13: 0xffffffffffffffff  x14: 0x0000000000000031  x15: 0x0000000000000030
+# x16: 0x0000000000000148  x17: 0x000000030cc3f000  x18: 0x0000000000000000  x19: 0x0000000000000006
+# x20: 0x000000000003120f  x21: 0x000000030cc3f0e0  x22: 0x000000030cc3bfa8  x23: 0x000000011966791c
+# x24: 0x000000030cc3c7f0  x25: 0x0000000000000000  x26: 0x0000000000000001  x27: 0xaaaaaaaaaaaaaaab
+# x28: 0x0000000305f5a408   fp: 0x000000030cc3b280   lr: 0x00000001d3721a9c
+# sp: 0x000000030cc3b260   pc: 0x00000001b5c9d334 cpsr: 0x40000000
+# esr: 0x56000080  Address size fault
+
+	thread_state = crash_info['threads'][triggered_thread].get("threadState")
+	if thread_state:
+		write_content += f'\n\nThread {triggered_thread} crashed with {thread_state.get("flavor")}:'
+		thread_state_content = []
+
+		thread_state_x = thread_state['x']
+		for i in range(len(thread_state_x)):
+			value = thread_state_x[i]["value"]
+			address = '0x{:016x}'.format(value)
+			thread_state_content.append(f'x{i}: {address}')
+			
+
+		for key in thread_state:
+			if key == 'x' or key == 'flavor':
+				continue
+			adddress = '0x{:016x}'.format(thread_state[key]["value"])
+			thread_state_content.append(f'{key}: {address}')
+		
+		thread_state_content_str = ''
+		for i in range(len(thread_state_content)):
+			thread_state_content_str += thread_state_content[i].ljust(25)
+			if i+1>0 and (i+1)%4 == 0:
+				thread_state_content_str += '\n'
+		write_content += f'\n{thread_state_content_str}'
+
+	write_content += f'\n\n\nBinary Images:\n'
 
 	all_binarys_content = []
 	arch_type = ''
@@ -118,7 +176,6 @@ def write_file(crash_info,file_path,crash_header_info):
 		binary = all_binarys[i]
 		path = binary.get('path')
 		address = binary["base"]
-		address_str = '0x{:x}'.format(address)
 		binary_name = binary.get('name')
 		app_name = crash_info['procName']
 		if not binary_name:
@@ -129,6 +186,13 @@ def write_file(crash_info,file_path,crash_header_info):
 
 		end_address = address + binary['size']
 		uuid = binary['uuid'].replace('-','').lower()
+
+
+		if app_start_address and address == 0:
+			address = int(app_start_address,16)
+			end_address = int(app_end_address,16)
+			uuid = app_uuid
+
 		if binary.get('arch'):
 			arch_type = binary['arch']
 		res = f'{hex(address)} - {hex(end_address)} {binary_name} {arch_type}  <{uuid}> {path}'
@@ -154,10 +218,15 @@ def main():
 		print('python dumpcrash2.py xxxxx.txt')
 		exit(0)
 	path = sys.argv[1]
+	if len(sys.argv) > 2:
+		global app_start_address
+		global app_end_address
+		global app_uuid
+		app_start_address = sys.argv[2]
+		app_end_address = sys.argv[3]
+		app_uuid = sys.argv[4]
 	crash_header_info = get_crash__header_info(path)
 	content = get_crash_content(path)
 	write_file(content,path,crash_header_info)
 
 main()
-
-
