@@ -23,18 +23,21 @@ def write_file(content,file_path):
 	write_content = ''
 	crash_info = content['diagnosticMetaData']
 
-	write_content += f'Hardware Model:      {crash_info["deviceType"]}'
-	write_content += f'\nVersion:             {crash_info["appBuildVersion"]} ({crash_info["appVersion"]})'
-	write_content += f'\nOS Version:          {crash_info["osVersion"]}'
-	write_content += f'\nCode Type:          {crash_info["platformArchitecture"]}'
+	write_content += f'Incident Identifier:   {"xxxxxxx"}'
+	write_content += f'\nHardware Model:        {crash_info["deviceType"]}'
+	write_content += f'\nIdentifier:            {crash_info["bundleIdentifier"]}'
+	write_content += f'\nVersion:               {crash_info["appBuildVersion"]} ({crash_info["appVersion"]})'
+	write_content += f'\nCode Type:             {crash_info["platformArchitecture"]}'
 
-	write_content += f'\n\nReport Version:      104\n'
+	write_content += f'\nOS Version:            {crash_info["osVersion"]}'
+
+	write_content += f'\n\nReport Version:        104\n'
 	
 
-	write_content += f'\nException Type:  {crash_info["exceptionType"]}'
+	write_content += f'\nException Type:   {crash_info["exceptionType"]}'
 	write_content += f'\nException Codes:  {crash_info["exceptionCode"]}'
-	write_content += f'\nsignal:  {crash_info["signal"]}'
-	write_content += f'\nTermination Description:  {crash_info["terminationReason"]}'
+	write_content += f'\nsignal:           {crash_info["signal"]}'
+	write_content += f'\nTermination Description:    {crash_info["terminationReason"]}'
 
 
 
@@ -64,18 +67,25 @@ def write_file(content,file_path):
 	write_content += f'\nBinary Images:\n'
 
 	all_binarys_content = []
+	arch_type = crash_info['platformArchitecture']
 	for key,value in all_binarys.items():
-		path = fine_binary_path(key)
 		address = int(value["startAddress"], 16)
 		address = '0x{:x}'.format(address)
 		uuid = value['uuid'].replace('-','').lower()
-		res = f'{address} - {address} {key} arm64  <{uuid}> {path}'
-		if path:
-			all_binarys_content.append(res)
-		else:
-			path = f'/var/containers/Bundle/Application/xxx/{key}.app/{key}'
-			res = f'{address} - {address} {key} arm64  <{uuid}> {path}'
+		
+		name = key
+		if key == '???':
+			name = app_name
+
+		path = ''
+		if key == '???' or key == app_name:
+			path = f'/var/containers/Bundle/Application/xxx/{app_name}.app/{app_name}'
+			res = f'{address} - {address} {key} {arch_type}  <{uuid}> {path}'
 			all_binarys_content.insert(0,res)
+		else:
+			path = fine_binary_path(key)
+			res = f'{address} - {address} {name} {arch_type}  <{uuid}> {path}'
+			all_binarys_content.append(res)
 
 	write_content += "\n".join(all_binarys_content)
 	write_content += "\n\nEOF\n\n"
@@ -103,7 +113,7 @@ def write_thread_content(index,triggered_thread,content,write_content,all_binary
 def write_thread_signal_stack(content,write_content,line_number,all_binarys):
 	uuid = content['binaryUUID']
 	binaryName = content.get('binaryName')
-	binaryName = binaryName if binaryName else app_name
+	binaryName = binaryName if binaryName else '???'
 	binary_run_address = content['offsetIntoBinaryTextSegment']
 	run_address = content['address']
 	run_address = '0x{:016x}'.format(run_address)
