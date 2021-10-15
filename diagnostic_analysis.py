@@ -7,6 +7,9 @@ import os
 import json
 
 app_name = ''
+app_start_address = ''
+app_end_address = ''
+app_uuid = ''
 
 def os_popen(cmd):
     # 执行 os.system(cmd)，返回执行结果
@@ -23,9 +26,12 @@ def write_file(content,file_path):
 	write_content = ''
 	crash_info = content['diagnosticMetaData']
 
-	write_content += f'Incident Identifier:   {"xxxxxxx"}'
+	write_content += f'Incident Identifier:   {"00000000-0000-0000-0000-000000000000"}'
 	write_content += f'\nHardware Model:        {crash_info["deviceType"]}'
-	write_content += f'\nIdentifier:            {crash_info["bundleIdentifier"]}'
+
+	bundleIdentifier = crash_info.get("bundleIdentifier")
+	write_content += f'\nIdentifier:            {bundleIdentifier}'
+
 	write_content += f'\nVersion:               {crash_info["appBuildVersion"]} ({crash_info["appVersion"]})'
 	write_content += f'\nCode Type:             {crash_info["platformArchitecture"]}'
 
@@ -72,7 +78,8 @@ def write_file(content,file_path):
 		address = int(value["startAddress"], 16)
 		address = '0x{:x}'.format(address)
 		uuid = value['uuid'].replace('-','').lower()
-		
+		end_address = address
+
 		name = key
 		if key == '???':
 			name = app_name
@@ -80,11 +87,17 @@ def write_file(content,file_path):
 		path = ''
 		if key == '???' or key == app_name:
 			path = f'/var/containers/Bundle/Application/xxx/{app_name}.app/{app_name}'
-			res = f'{address} - {address} {key} {arch_type}  <{uuid}> {path}'
+
+			if app_start_address and address == '0x0':
+				address = app_start_address
+				end_address = app_end_address
+				uuid = app_uuid
+
+			res = f'{address} - {end_address} {name} {arch_type}  <{uuid}> {path}'
 			all_binarys_content.insert(0,res)
 		else:
 			path = fine_binary_path(key)
-			res = f'{address} - {address} {name} {arch_type}  <{uuid}> {path}'
+			res = f'{address} - {end_address} {name} {arch_type}  <{uuid}> {path}'
 			all_binarys_content.append(res)
 
 	write_content += "\n".join(all_binarys_content)
@@ -139,9 +152,23 @@ def fine_binary_path(binary_name):
 
 def main():
 	if len(sys.argv) < 3:
-		print('python diagnostic_analysis.py xxxxx.txt machOName')
+		print('第一个参数 crash文件')
+		print('第二个参数 machOName')
+		print('第三个参数 app运行时 binary 基地址 可选参数')
+		print('第四个参数 app运行时 binary 结束地址 可选参数')
+		print('第五个参数 app binary uuid 可选参数')
 		exit(0)
 	path = sys.argv[1]
+
+	if len(sys.argv) > 3:
+		global app_start_address
+		global app_end_address
+		global app_uuid
+
+		app_start_address = sys.argv[3]
+		app_end_address = sys.argv[4]
+		app_uuid = sys.argv[5]
+
 	result = load_json(path)
 	start_time = result['timeStampBegin'].replace(':',"_")
 	end_time = result['timeStampEnd'].replace(':',"_")

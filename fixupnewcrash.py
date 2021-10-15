@@ -215,7 +215,10 @@ def write_file(crash_info,file_path,crash_header_info):
 
 def main():
 	if len(sys.argv) < 2:
-		print('python dumpcrash2.py xxxxx.txt')
+		print('第一个参数 crash文件')
+		print('第二个参数 app运行时 binary 基地址 可选参数')
+		print('第三个参数 app运行时 binary 结束地址 可选参数')
+		print('第四个参数 app binary uuid 可选参数')
 		exit(0)
 	path = sys.argv[1]
 	if len(sys.argv) > 2:
