@@ -40,17 +40,31 @@ def write_thread_content(index,triggered_thread,thread,write_content,all_binarys
 
 	for i in range(len(call_stacks)):
 		stack = call_stacks[i]
-		binary = all_binarys[stack['imageIndex']]
+		binaryName = ''
+		imageIndex = -1
+		imageOffset = 0
+		binary_start_address = 0
+		run_address_str = ''
+		if isinstance(stack,list):
+			imageIndex = stack[0]
+			imageOffset = stack[1]
+		else:
+			imageIndex = stack['imageIndex']
+			imageOffset = stack['imageOffset']
+
+		binary = all_binarys[imageIndex]
 		binaryName = binary.get('name')
+		binary_start_address = all_binarys[imageIndex]['base']
+		run_address = binary_start_address + imageOffset
+		run_address_str = '0x{:016x}'.format(run_address)
+
 		if not binaryName:
 			binaryName = '???'
-		binary_start_address = all_binarys[stack['imageIndex']]['base']
-		run_address = binary_start_address + stack['imageOffset']
-		run_address_str = '0x{:016x}'.format(run_address)
-		if stack.get('symbol'):
+		
+		if not isinstance(stack,list) and stack.get('symbol'):
 			write_content += f'\n{str(line_number).ljust(4)}{binaryName.ljust(30)}	{run_address_str} {stack.get("symbol")} + {stack["symbolLocation"]}'
 		else:
-			write_content += f'\n{str(line_number).ljust(4)}{binaryName.ljust(30)}	{run_address_str} {hex(binary_start_address)} + {stack["imageOffset"]}'
+			write_content += f'\n{str(line_number).ljust(4)}{binaryName.ljust(30)}	{run_address_str} {hex(binary_start_address)} + {imageOffset}'
 		line_number += 1
 	return write_content
 
@@ -105,27 +119,47 @@ def write_file(crash_info,file_path,crash_header_info):
 	threads = crash_info['threads']
 	thread_count = len(threads)
 
-	triggered_thread = crash_info['faultingThread']
+	triggered_thread = crash_info.get('faultingThread')
+	if not triggered_thread:
+		for i in range(thread_count):
+			if threads[i].get('triggered'):
+				triggered_thread = i
+				break
 
 	write_content += f'\n\nTriggered by Thread:   {triggered_thread}'
 
-	all_binarys = crash_info['usedImages']
+	all_binarys = []
+
+	# 15以下系统此参数有值
+	imageExtraInfo = crash_info['legacyInfo'].get('imageExtraInfo')
+	if imageExtraInfo:
+		all_binarys = imageExtraInfo
+		usedImages = crash_info['usedImages']
+		for i in range(len(all_binarys)):
+			binary = all_binarys[i]
+			binary['uuid'] = usedImages[i][0]
+			binary['base'] = usedImages[i][1]
+			binary['source'] = usedImages[i][2]
+	else:
+		all_binarys = crash_info['usedImages']
 
 	lastExceptionBacktrace = crash_info.get("lastExceptionBacktrace")
 	if lastExceptionBacktrace:
 		write_content += f'\n\nLast Exception Backtrace:'
-		content = '('
-		for i in range(len(lastExceptionBacktrace)):
-			backtrace = lastExceptionBacktrace[i]
-			address = all_binarys[backtrace['imageIndex']]['base']	+ backtrace['imageOffset']
-			space = " "
-			if i == 0:
-				space = ""
-				pass
-			content += f'{space}{hex(address)}'
-		content += ")"
-		write_content += f'\n{content}'
-
+		if isinstance(lastExceptionBacktrace,list):
+			content = '('
+			for i in range(len(lastExceptionBacktrace)):
+				backtrace = lastExceptionBacktrace[i]
+				address = all_binarys[backtrace['imageIndex']]['base']	+ backtrace['imageOffset']
+				space = " "
+				if i == 0:
+					space = ""
+					pass
+				content += f'{space}{hex(address)}'
+			content += ")"
+			write_content += f'\n{content}'
+		else:
+			write_content += f'\n{lastExceptionBacktrace}'
 	
 	for i in range(thread_count):
 		write_content = write_thread_content(i,triggered_thread,threads[i],write_content,all_binarys)
