@@ -178,13 +178,20 @@ def write_file(crash_info,file_path,crash_header_info):
 # esr: 0x56000080  Address size fault
 
 	thread_state = crash_info['threads'][triggered_thread].get("threadState")
+	if not thread_state:
+		thread_state = crash_info['threadState']
 	if thread_state:
 		write_content += f'\n\nThread {triggered_thread} crashed with {thread_state.get("flavor")}:'
 		thread_state_content = []
 
 		thread_state_x = thread_state['x']
 		for i in range(len(thread_state_x)):
-			value = thread_state_x[i]["value"]
+			thread_state_x_index = thread_state_x[i]
+			value = ''
+			if isinstance(thread_state_x_index,int):
+				value = thread_state_x_index
+			else:
+				value = thread_state_x_index.get("value")
 			address = '0x{:016x}'.format(value)
 			thread_state_content.append(f'x{i}: {address}')
 			
@@ -192,9 +199,19 @@ def write_file(crash_info,file_path,crash_header_info):
 		for key in thread_state:
 			if key == 'x' or key == 'flavor':
 				continue
-			adddress = '0x{:016x}'.format(thread_state[key]["value"])
+			thread_state_value = thread_state[key]
+			value = ''
+			if isinstance(thread_state[key],dict):
+				value = thread_state_value["value"]
+			else:
+				value = thread_state_value
+
+			address = ''
+			if isinstance(value,int):
+				address = '0x{:016x}'.format(value)
+			else:
+				address = value
 			thread_state_content.append(f'{key}: {address}')
-		
 		thread_state_content_str = ''
 		for i in range(len(thread_state_content)):
 			thread_state_content_str += thread_state_content[i].ljust(25)
