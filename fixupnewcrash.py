@@ -231,5 +231,6 @@ def main():
 	crash_header_info = get_crash__header_info(path)
 	content = get_crash_content(path)
 	write_file(content,path,crash_header_info)
+	print(f'生成新文件 {path}.txt')
 
 main()
