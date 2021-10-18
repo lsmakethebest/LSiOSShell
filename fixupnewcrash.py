@@ -32,6 +32,8 @@ def write_thread_content(index,triggered_thread,thread,write_content,all_binarys
 
 	return_line = '\n\n'
 	if thread_name or thread_queue:
+		if thread_queue:
+			thread_queue = f'Dispatch queue:{thread_queue}'
 		write_content += f'\n\nThread {index} name: {thread_name} {thread_queue}'
 		return_line = '\n'
 	write_content += f'{return_line}Thread {index}{crashed}:'
