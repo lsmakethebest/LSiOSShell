@@ -181,7 +181,7 @@ def write_file(crash_info,file_path,crash_header_info):
 
 	thread_state = crash_info['threads'][triggered_thread].get("threadState")
 	if not thread_state:
-		thread_state = crash_info['threadState']
+		thread_state = crash_info.get('threadState')
 	if thread_state:
 		write_content += f'\n\nThread {triggered_thread} crashed with {thread_state.get("flavor")}:'
 		thread_state_content = []
