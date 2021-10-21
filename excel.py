@@ -28,6 +28,7 @@ items = []
 # type = '4' #我是卖家营销工作台店铺宝编辑活动(getItemList) https://shell.mkt.taobao.com/shopAct/getItemList?activityId=17986203561&itemIdOrName=&outerId=&cateId=&auctionStatus=0&pageNo=1&pageSize=10
 # type = '5' #我是卖家营销工作台店铺宝(getList)                   https://shell.mkt.taobao.com/shopAct/index#/?spm=a21y7.12701734.0.0.45c85252vHPlVT&tabKey=custom
 # type = '6' #官方大促天猫520礼遇季(queryListData)                   https://sale.tmall.com/page/campaign/sale.htm?campaignId=31858
+# type = '7' #活动分析>预售活动详情(getItemListLive)       https://sycm.taobao.com/datawar/activity/presell?activityId=20851303&activityStatus=3&dateRange=2021-10-21%7C2021-10-21&dateType=today&spm=a21ag.8205355.0.0.248e50a5Lcda3d
 
 def handle_type1_price(item):
 	price = ''
@@ -215,12 +216,12 @@ elif type_str == '4':
 
 	items = [
 		{
-			"key":"base.activityId",
+			"key":"base:activityId",
 			"name":"活动编号",
 			"width":700
 		},
 		{
-			"key":"base.activityName",
+			"key":"base:activityName",
 			"name":"活动名称",
 			"width":220
 		},
@@ -350,6 +351,39 @@ elif type_str == '6':
 			"width":220,
 		}
 	]
+elif type_str == '7':
+	current_page_string = 'page'
+	list_key = ['data','data','data'];
+	total_count_key = ['data','data','recordCount']
+	page_size_count = 10
+
+	items = [
+		{
+			"key":"item:title",
+			"name":"商品名称",
+			"width":700
+		},
+		{
+			"key":"presaleOrdAmt:value",
+			"name":"预售订单金额",
+			"width":220
+		},
+		{
+			"key":"sumPayDepositByrCnt:value",
+			"name":"定金支付买家数",
+			"width":220,
+		},
+		{
+			"key":"presalePayItemCnt:value",
+			"name":"定金支付件数",
+			"width":220,
+		},
+		{
+			"key":"sumPayDepositAmt:value",
+			"name":"定金支付金额",
+			"width":220,
+		}
+	]
 
 
 def getList():
@@ -442,8 +476,7 @@ def write_excel(result):
 
 	for i in range(0,len(result)):
 		item = result[i]
-
-	# 设置每行宽度
+	    # 设置每行宽度
 		for m in range(len(items)):
 			set_item = items[m]
 			func = set_item.get('func')
@@ -465,7 +498,9 @@ def write_excel(result):
 							for n in range(len(content)):
 								sheet1.write(i+1,m+n,content[n][cur_key],style)
 						else:
-							content = content[cur_key]
+							content = content.get(cur_key)
+					if not content:
+						content = ''
 					sheet1.write(i+1,m,f'{content}',style)
 
 				else:
