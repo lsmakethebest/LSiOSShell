@@ -28,7 +28,6 @@ usage(){
 	echoResult '请输入参数：'
 	echoResult '\t必传参数1：Hardware Model'
 	echoResult '\t必传参数2：OS Version 中的 buildId:例如：17D50'
-	echoResult '\t可选参数 -p 已经下载的ipsw文件目录会直接跳过下载用此文件'
 	echoResult '\t可选参数 -d 处理完后，自动删除下载的ipsw文件，默认1，0：不删除 1：删除'
 	echoResult '\t可选参数 -v 打印详细日志'
 	echoResult '\t可选参数 -h 查看使用说明'
@@ -47,8 +46,6 @@ output_path="$cache_path/unzip"
 dyld_path="$cache_path/dyld"
 hardware_model=$1
 build_id=$2
-file_path_param=""
-system_version=""
 
 shift 2
 # 解析参数
@@ -64,10 +61,6 @@ while [ "$1" != "" ]; do
         -h | --help )
             usage
             ;;
-        -p | --path )
-            shift
-            file_path_param="$1"
-            ;;
         * )
             ;;
     esac
@@ -75,6 +68,7 @@ while [ "$1" != "" ]; do
     # Next arg
     shift
 done
+
 
 function parse_json(){
     echo "${1//\"/}" | sed "s/.*$2:\([^,}]*\).*/\1/"
@@ -84,29 +78,20 @@ function get_url(){
 	echo $1 | grep -Eo 'http.*ipsw'
 }
 
-function download_ipsw(){
-	url="https://api.ipsw.me/v4/ipsw/"$hardware_model/$build_id
-	result=$(curl $url -s)
-	if [ "$result" =  "" ];then
-		echo "未找到ipsw => "$url
-		exit 0
-	fi
+url="https://api.ipsw.me/v4/ipsw/"$hardware_model/$build_id
+result=$(curl $url -s)
+if [ "$result" =  "" ];then
+	echo "未找到ipsw => "$url
+	exit 0
+fi
 
 
-	system_version=$(parse_json $result "version")
-	download_url=$(get_url $result)
+system_version=$(parse_json $result "version")
+download_url=$(get_url $result)
 
 
-	echo $result
-	echo $system_version
-
-	echoResult "start downloading ipsw……"
-	echo $download_url"\n"
-
-	curl -C - -o $file_path $download_url
-
-	echoResult "download ipsw finish"
-}
+echo $result
+echo $system_version
 
 if [ ! -d $cache_path ]; then
 	mkdir $cache_path
@@ -116,12 +101,13 @@ if [ ! -d $ipsw_path ]; then
 	mkdir $ipsw_path
 fi
 
-if [ "$file_path_param" == "" ]; then
-	download_url
-else
-	mv $file_path_param $file_path
-fi
 
+echoResult "start downloading ipsw……"
+echo $download_url"\n"
+
+curl -C - -o $file_path $download_url
+
+echoResult "download ipsw finish"
 echoResult "start unzip ipsw……"
 
 if [ ! -d $output_path ]; then
@@ -140,6 +126,7 @@ fi
 
 echoResult "unzip ipsw finish"
 
+
 cd $output_path
 big_dmg=$(ls -S | head -1)
 
@@ -150,20 +137,11 @@ dyldFolder=$volume"/System/Library/Caches/com.apple.dyld/*"
 
 cp $dyldFolder $dyld_path
 
-big_dyld_name=$(ls -S $dyld_path | head -1)
-target_dyld_folder=$dyld_path/$big_dyld_name
-
+target_dyld_folder=$(find $dyld_path -name "dyld_shared*")
 echo "dyld: "$target_dyld_folder
 
 # 卸载
 hdiutil detach $volume
-
-result=$(/usr/libexec/PlistBuddy -c "Print ProductVersion" $output_path"/Restore.plist")
-if [ "$system_version" == "" ]; then
-	system_version=$result
-	echoResult $system_version
-fi
-
 
 # 删除无用 dyld_shared文件
 rm -rf $output_path
