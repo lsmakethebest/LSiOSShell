@@ -137,7 +137,7 @@ dyldFolder=$volume"/System/Library/Caches/com.apple.dyld/*"
 
 cp $dyldFolder $dyld_path
 
-target_dyld_folder=$(find $dyld_path -name "dyld_shared*")
+target_dyld_folder=$dyld_path"/dyld_shared_cache_arm64"
 echo "dyld: "$target_dyld_folder
 
 # 卸载
