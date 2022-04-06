@@ -43,7 +43,9 @@ def write_file(content,file_path):
 	write_content += f'\nException Type:   {crash_info["exceptionType"]}'
 	write_content += f'\nException Codes:  {crash_info["exceptionCode"]}'
 	write_content += f'\nsignal:           {crash_info["signal"]}'
-	write_content += f'\nTermination Description:    {crash_info["terminationReason"]}'
+	write_content += f'\nTermination Description:    {crash_info.get("terminationReason")}'
+	write_content += f'\nvirtualMemoryRegionInfo:    {crash_info.get("virtualMemoryRegionInfo")}'
+	
 
 
 
@@ -168,6 +170,15 @@ def main():
 		app_start_address = sys.argv[3]
 		app_end_address = sys.argv[4]
 		app_uuid = sys.argv[5]
+
+	if app_start_address == '':
+		app_start_address = '0x0'
+
+	if app_end_address == '':
+		app_end_address = '0xffffffffffffffff'
+
+	if app_uuid == '':
+		app_uuid = '???'
 
 	result = load_json(path)
 	start_time = result['timeStampBegin'].replace(':',"_")

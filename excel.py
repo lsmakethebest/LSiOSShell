@@ -77,6 +77,16 @@ def handle_type6_price(item,key):
 		text = text.replace('.0','')
 		return text
 
+def handle_type8_cycleCrc(item,key):
+	keys = key.split(':')
+	value = item[keys[0]][keys[1]]
+	if value:
+		value = value*100
+		return "{:.2f}".format(value)+'%'
+	else:
+		return ''
+
+
 if type_str == '1':
 	current_page_string = 'currentPage'
 	list_key = ['data','list'];
@@ -349,7 +359,12 @@ elif type_str == '6':
 			"key":"statusName",
 			"name":"活动状态",
 			"width":220,
-		}
+		},
+        {
+            "key":"depositPrice",
+            "name":"定金",
+            "width":220,
+        }
 	]
 elif type_str == '7':
 	current_page_string = 'page'
@@ -384,7 +399,79 @@ elif type_str == '7':
 			"width":220,
 		}
 	]
+elif type_str == '8':
+	current_page_string = 'page'
+	list_key = ['data','data'];
+	total_count_key = ['data','recordCount']
+	page_size_count = 10
 
+	items = [
+		{
+			"key":"item:title",
+			"name":"商品名称",
+			"width":700
+		},
+		{
+			"key":"item:itemNO",
+			"name":"商品id",
+			"width":220
+		},
+		{
+			"key":"payAmt:value",
+			"name":"支付金额",
+			"width":220
+		},
+		{
+			"key":"payAmt:cycleCrc",
+			"name":"支付金额增长",
+			"width":150,
+			"func":handle_type8_cycleCrc
+		},
+		{
+			"key":"payItmCnt:value",
+			"name":"支付件数",
+			"width":180,
+		},
+		{
+			"key":"payItmCnt:cycleCrc",
+			"name":"支付件数增长",
+			"width":150,
+			"func":handle_type8_cycleCrc
+		},
+		{
+			"key":"sucRefundAmt:value",
+			"name":"成功退款金额",
+			"width":220,
+		},
+		{
+			"key":"sucRefundAmt:cycleCrc",
+			"name":"成功退款金额增长",
+			"width":180,
+			"func":handle_type8_cycleCrc
+		},
+		{
+			"key":"itemCartCnt:value",
+			"name":"商品加购件数",
+			"width":180,
+		},
+		{
+			"key":"itemCartCnt:cycleCrc",
+			"name":"商品加购件数增长",
+			"width":180,
+			"func":handle_type8_cycleCrc
+		},
+		{
+			"key":"itmUv:value",
+			"name":"商品访客数",
+			"width":180,
+		},
+		{
+			"key":"itmUv:cycleCrc",
+			"name":"商品访客数增长",
+			"width":180,
+			"func":handle_type8_cycleCrc
+		}
+	]
 
 def getList():
 	currentPage = 1
@@ -499,7 +586,7 @@ def write_excel(result):
 								sheet1.write(i+1,m+n,content[n][cur_key],style)
 						else:
 							content = content.get(cur_key)
-					if not content:
+					if content is None:
 						content = ''
 					sheet1.write(i+1,m,f'{content}',style)
 
